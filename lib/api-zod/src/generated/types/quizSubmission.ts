@@ -5,7 +5,9 @@
  * EduPlatform API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { QuizAnswer } from './quizAnswer';
 
-export interface HealthStatus {
-  status: string;
+export interface QuizSubmission {
+  lessonId: number;
+  answers: QuizAnswer[];
 }

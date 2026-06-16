@@ -6,6 +6,10 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface HealthStatus {
-  status: string;
+export interface ProgressInput {
+  courseId: number;
+  lessonId: number;
+  completed: boolean;
+  score?: number;
+  xp: number;
 }

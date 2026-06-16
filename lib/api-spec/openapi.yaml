@@ -3,13 +3,23 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: EduPlatform API specification
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: courses
+    description: Course catalog operations
+  - name: lessons
+    description: Lesson operations
+  - name: progress
+    description: User progress tracking
+  - name: quiz
+    description: Quiz operations
+  - name: chat
+    description: AI chat assistant
 paths:
   /healthz:
     get:
@@ -24,6 +34,268 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /courses:
+    get:
+      operationId: listCourses
+      tags: [courses]
+      summary: List all courses
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: difficulty
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of courses
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Course"
+    post:
+      operationId: createCourse
+      tags: [courses]
+      summary: Create a new course
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CourseInput"
+      responses:
+        "201":
+          description: Created course
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Course"
+
+  /courses/{id}:
+    get:
+      operationId: getCourse
+      tags: [courses]
+      summary: Get a course with its lessons
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Course with lessons
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CourseWithLessons"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /courses/stats:
+    get:
+      operationId: getCourseStats
+      tags: [courses]
+      summary: Get course catalog stats (counts by category, total enrolled, etc.)
+      responses:
+        "200":
+          description: Catalog stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CourseStats"
+
+  /lessons/{id}:
+    get:
+      operationId: getLesson
+      tags: [lessons]
+      summary: Get a lesson with its quiz questions
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Lesson with quiz
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LessonWithQuiz"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /progress:
+    get:
+      operationId: getMyProgress
+      tags: [progress]
+      summary: Get the current user's progress across all courses
+      responses:
+        "200":
+          description: User progress list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UserProgress"
+    post:
+      operationId: upsertProgress
+      tags: [progress]
+      summary: Mark a lesson as complete or update progress
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProgressInput"
+      responses:
+        "200":
+          description: Updated progress
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProgress"
+
+  /progress/dashboard:
+    get:
+      operationId: getProgressDashboard
+      tags: [progress]
+      summary: Get a dashboard summary — completed lessons, streaks, XP earned
+      responses:
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProgressDashboard"
+
+  /quiz/submit:
+    post:
+      operationId: submitQuiz
+      tags: [quiz]
+      summary: Submit quiz answers and get score
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuizSubmission"
+      responses:
+        "200":
+          description: Quiz result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuizResult"
+
+  /chat/conversations:
+    get:
+      operationId: listChatConversations
+      tags: [chat]
+      summary: List the user's chat conversations
+      responses:
+        "200":
+          description: List of conversations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ChatConversation"
+    post:
+      operationId: createChatConversation
+      tags: [chat]
+      summary: Create a new chat conversation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChatConversationInput"
+      responses:
+        "201":
+          description: Created conversation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatConversation"
+
+  /chat/conversations/{id}:
+    get:
+      operationId: getChatConversation
+      tags: [chat]
+      summary: Get a conversation with all messages
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Conversation with messages
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatConversationWithMessages"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+    delete:
+      operationId: deleteChatConversation
+      tags: [chat]
+      summary: Delete a conversation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /chat/conversations/{id}/messages:
+    post:
+      operationId: sendChatMessage
+      tags: [chat]
+      summary: Send a message and stream AI response
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChatMessageInput"
+      responses:
+        "200":
+          description: SSE stream of AI response chunks
+          content:
+            text/event-stream: {}
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +306,410 @@ components:
       required:
         - status
 
+    ApiError:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    Course:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        difficulty:
+          type: string
+        thumbnailUrl:
+          type: ["string", "null"]
+        totalLessons:
+          type: integer
+        estimatedMinutes:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - title
+        - description
+        - category
+        - difficulty
+        - totalLessons
+        - estimatedMinutes
+        - createdAt
+
+    CourseInput:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        difficulty:
+          type: string
+        thumbnailUrl:
+          type: string
+        estimatedMinutes:
+          type: integer
+      required:
+        - title
+        - description
+        - category
+        - difficulty
+        - estimatedMinutes
+
+    Lesson:
+      type: object
+      properties:
+        id:
+          type: integer
+        courseId:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        videoUrl:
+          type: ["string", "null"]
+        order:
+          type: integer
+        durationMinutes:
+          type: integer
+      required:
+        - id
+        - courseId
+        - title
+        - description
+        - order
+        - durationMinutes
+
+    LessonWithQuiz:
+      type: object
+      properties:
+        id:
+          type: integer
+        courseId:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        videoUrl:
+          type: ["string", "null"]
+        order:
+          type: integer
+        durationMinutes:
+          type: integer
+        quizQuestions:
+          type: array
+          items:
+            $ref: "#/components/schemas/QuizQuestion"
+      required:
+        - id
+        - courseId
+        - title
+        - description
+        - order
+        - durationMinutes
+        - quizQuestions
+
+    CourseWithLessons:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        difficulty:
+          type: string
+        thumbnailUrl:
+          type: ["string", "null"]
+        totalLessons:
+          type: integer
+        estimatedMinutes:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        lessons:
+          type: array
+          items:
+            $ref: "#/components/schemas/Lesson"
+      required:
+        - id
+        - title
+        - description
+        - category
+        - difficulty
+        - totalLessons
+        - estimatedMinutes
+        - createdAt
+        - lessons
+
+    CourseStats:
+      type: object
+      properties:
+        totalCourses:
+          type: integer
+        totalStudents:
+          type: integer
+        categoryCounts:
+          type: object
+          additionalProperties:
+            type: integer
+        difficultyCounts:
+          type: object
+          additionalProperties:
+            type: integer
+      required:
+        - totalCourses
+        - totalStudents
+        - categoryCounts
+        - difficultyCounts
+
+    QuizQuestion:
+      type: object
+      properties:
+        id:
+          type: integer
+        lessonId:
+          type: integer
+        question:
+          type: string
+        options:
+          type: array
+          items:
+            type: string
+        order:
+          type: integer
+      required:
+        - id
+        - lessonId
+        - question
+        - options
+        - order
+
+    QuizSubmission:
+      type: object
+      properties:
+        lessonId:
+          type: integer
+        answers:
+          type: array
+          items:
+            $ref: "#/components/schemas/QuizAnswer"
+      required:
+        - lessonId
+        - answers
+
+    QuizAnswer:
+      type: object
+      properties:
+        questionId:
+          type: integer
+        selectedOption:
+          type: integer
+      required:
+        - questionId
+        - selectedOption
+
+    QuizResult:
+      type: object
+      properties:
+        score:
+          type: integer
+        total:
+          type: integer
+        passed:
+          type: boolean
+        xpEarned:
+          type: integer
+        correctAnswers:
+          type: array
+          items:
+            type: integer
+      required:
+        - score
+        - total
+        - passed
+        - xpEarned
+        - correctAnswers
+
+    UserProgress:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: string
+        courseId:
+          type: integer
+        lessonId:
+          type: integer
+        completed:
+          type: boolean
+        score:
+          type: ["integer", "null"]
+        xp:
+          type: integer
+        completedAt:
+          type: ["string", "null"]
+          format: date-time
+      required:
+        - id
+        - userId
+        - courseId
+        - lessonId
+        - completed
+        - xp
+
+    ProgressInput:
+      type: object
+      properties:
+        courseId:
+          type: integer
+        lessonId:
+          type: integer
+        completed:
+          type: boolean
+        score:
+          type: integer
+        xp:
+          type: integer
+      required:
+        - courseId
+        - lessonId
+        - completed
+        - xp
+
+    ProgressDashboard:
+      type: object
+      properties:
+        totalXp:
+          type: integer
+        totalCompleted:
+          type: integer
+        currentStreak:
+          type: integer
+        coursesInProgress:
+          type: integer
+        recentActivity:
+          type: array
+          items:
+            $ref: "#/components/schemas/ActivityItem"
+      required:
+        - totalXp
+        - totalCompleted
+        - currentStreak
+        - coursesInProgress
+        - recentActivity
+
+    ActivityItem:
+      type: object
+      properties:
+        lessonTitle:
+          type: string
+        courseTitle:
+          type: string
+        completedAt:
+          type: string
+          format: date-time
+        xpEarned:
+          type: integer
+      required:
+        - lessonTitle
+        - courseTitle
+        - completedAt
+        - xpEarned
+
+    ChatConversation:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: string
+        title:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - userId
+        - title
+        - createdAt
+
+    ChatConversationInput:
+      type: object
+      properties:
+        title:
+          type: string
+      required:
+        - title
+
+    ChatConversationWithMessages:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: string
+        title:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/ChatMessage"
+      required:
+        - id
+        - userId
+        - title
+        - createdAt
+        - messages
+
+    ChatMessage:
+      type: object
+      properties:
+        id:
+          type: integer
+        conversationId:
+          type: integer
+        role:
+          type: string
+        content:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - conversationId
+        - role
+        - content
+        - createdAt
+
+    ChatMessageInput:
+      type: object
+      properties:
+        content:
+          type: string
+      required:
+        - content
