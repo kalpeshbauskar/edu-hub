@@ -1,0 +1,1 @@
+- [Generated API hook names](generated-hook-names.md) — hook names differ from intuitive guesses; check generated file before using.
