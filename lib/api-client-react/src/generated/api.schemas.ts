@@ -145,6 +145,20 @@ export interface ProgressDashboard {
   recentActivity: ActivityItem[];
 }
 
+export interface LeaderboardEntry {
+  rank: number;
+  userId: string;
+  displayName: string;
+  totalXp: number;
+  lessonsCompleted: number;
+  isCurrentUser: boolean;
+}
+
+export interface Leaderboard {
+  entries: LeaderboardEntry[];
+  currentUserEntry: LeaderboardEntry | null;
+}
+
 export interface ChatConversation {
   id: number;
   userId: string;
@@ -179,5 +193,9 @@ export interface ChatMessageInput {
 export type ListCoursesParams = {
 category?: string;
 difficulty?: string;
+};
+
+export type GetLeaderboardParams = {
+limit?: number;
 };
 

@@ -184,6 +184,25 @@ paths:
               schema:
                 $ref: "#/components/schemas/ProgressDashboard"
 
+  /progress/leaderboard:
+    get:
+      operationId: getLeaderboard
+      tags: [progress]
+      summary: Get top users by XP with the current user's rank
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        "200":
+          description: Leaderboard with top users and current user rank
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Leaderboard"
+
   /quiz/submit:
     post:
       operationId: submitQuiz
@@ -635,6 +654,44 @@ components:
         - courseTitle
         - completedAt
         - xpEarned
+
+    LeaderboardEntry:
+      type: object
+      properties:
+        rank:
+          type: integer
+        userId:
+          type: string
+        displayName:
+          type: string
+        totalXp:
+          type: integer
+        lessonsCompleted:
+          type: integer
+        isCurrentUser:
+          type: boolean
+      required:
+        - rank
+        - userId
+        - displayName
+        - totalXp
+        - lessonsCompleted
+        - isCurrentUser
+
+    Leaderboard:
+      type: object
+      properties:
+        entries:
+          type: array
+          items:
+            $ref: "#/components/schemas/LeaderboardEntry"
+        currentUserEntry:
+          oneOf:
+            - $ref: "#/components/schemas/LeaderboardEntry"
+            - type: "null"
+      required:
+        - entries
+        - currentUserEntry
 
     ChatConversation:
       type: object

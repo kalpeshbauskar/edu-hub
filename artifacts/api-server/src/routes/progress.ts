@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
 import { userProgressTable, lessonsTable, coursesTable } from "@workspace/db";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, sql } from "drizzle-orm";
 import { getAuth } from "@clerk/express";
 import { UpsertProgressBody } from "@workspace/api-zod";
 
@@ -106,6 +106,63 @@ router.get("/dashboard", requireAuth, async (req: any, res) => {
       xpEarned: r.xpEarned,
     })),
   });
+});
+
+router.get("/leaderboard", requireAuth, async (req: any, res) => {
+  const limit = Math.max(1, Math.min(parseInt(req.query.limit ?? "10", 10) || 10, 50));
+
+  const rows = await db
+    .select({
+      userId: userProgressTable.userId,
+      totalXp: sql<number>`cast(sum(${userProgressTable.xp}) as int)`,
+      lessonsCompleted: sql<number>`cast(count(case when ${userProgressTable.completed} then 1 end) as int)`,
+    })
+    .from(userProgressTable)
+    .groupBy(userProgressTable.userId)
+    .orderBy(desc(sql`sum(${userProgressTable.xp})`));
+
+  const ranked = rows.map((row, index) => ({
+    rank: index + 1,
+    userId: row.userId,
+    totalXp: row.totalXp,
+    lessonsCompleted: row.lessonsCompleted,
+  }));
+
+  const currentUserId = req.userId as string;
+
+  function makeDisplayName(userId: string, rank: number, isCurrentUser: boolean): string {
+    if (isCurrentUser) return "You";
+    return `Learner #${rank}`;
+  }
+
+  const topEntries = ranked.slice(0, limit).map((entry) => {
+    const isCurrentUser = entry.userId === currentUserId;
+    return {
+      rank: entry.rank,
+      userId: entry.userId,
+      displayName: makeDisplayName(entry.userId, entry.rank, isCurrentUser),
+      totalXp: entry.totalXp,
+      lessonsCompleted: entry.lessonsCompleted,
+      isCurrentUser,
+    };
+  });
+
+  const currentUserRanked = ranked.find((e) => e.userId === currentUserId);
+  let currentUserEntry = null;
+  if (currentUserRanked && !topEntries.some((e) => e.isCurrentUser)) {
+    currentUserEntry = {
+      rank: currentUserRanked.rank,
+      userId: currentUserRanked.userId,
+      displayName: "You",
+      totalXp: currentUserRanked.totalXp,
+      lessonsCompleted: currentUserRanked.lessonsCompleted,
+      isCurrentUser: true,
+    };
+  } else if (currentUserRanked) {
+    currentUserEntry = topEntries.find((e) => e.isCurrentUser) ?? null;
+  }
+
+  res.json({ entries: topEntries, currentUserEntry });
 });
 
 export default router;

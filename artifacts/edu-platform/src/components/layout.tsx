@@ -1,12 +1,13 @@
 import { Link, useLocation } from "wouter";
 import { UserButton, Show } from "@clerk/react";
-import { BookOpen, Code2, MessageCircle, LayoutDashboard, GraduationCap, Menu, X } from "lucide-react";
+import { BookOpen, Code2, MessageCircle, LayoutDashboard, GraduationCap, Menu, X, Trophy } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/courses", label: "Courses", icon: BookOpen },
+  { href: "/leaderboard", label: "Leaderboard", icon: Trophy },
   { href: "/code", label: "Code Lab", icon: Code2 },
   { href: "/chat", label: "AI Tutor", icon: MessageCircle },
 ];

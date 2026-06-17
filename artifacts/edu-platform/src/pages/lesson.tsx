@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Link, useParams } from "wouter";
 import { ChevronLeft, CheckCircle, XCircle, Trophy, ChevronRight, Loader2 } from "lucide-react";
-import { useGetLesson, useUpsertProgress, useSubmitQuiz } from "@workspace/api-client-react";
+import { useGetLesson, useUpsertProgress, useSubmitQuiz, getGetLeaderboardQueryKey, getGetMyProgressQueryKey } from "@workspace/api-client-react";
 import { useUser } from "@clerk/react";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function LessonPage() {
   const { id } = useParams<{ id: string }>();
@@ -16,6 +17,7 @@ export default function LessonPage() {
   const [result, setResult] = useState<{ score: number; results: Array<{ questionId: number; correct: boolean }> } | null>(null);
   const [quizStarted, setQuizStarted] = useState(false);
 
+  const queryClient = useQueryClient();
   const upsertProgress = useUpsertProgress();
   const submitQuiz = useSubmitQuiz();
 
@@ -49,6 +51,8 @@ export default function LessonPage() {
             xp: Math.round(res.score),
           },
         });
+        queryClient.invalidateQueries({ queryKey: getGetLeaderboardQueryKey() });
+        queryClient.invalidateQueries({ queryKey: getGetMyProgressQueryKey() });
       }
     } catch {
       // fallback: calculate locally

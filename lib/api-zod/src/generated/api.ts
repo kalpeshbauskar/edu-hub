@@ -174,6 +174,35 @@ export const GetProgressDashboardResponse = zod.object({
 
 
 /**
+ * @summary Get top users by XP with the current user's rank
+ */
+export const getLeaderboardQueryLimitDefault = 10;
+
+export const GetLeaderboardQueryParams = zod.object({
+  "limit": zod.coerce.number().default(getLeaderboardQueryLimitDefault)
+})
+
+export const GetLeaderboardResponse = zod.object({
+  "entries": zod.array(zod.object({
+  "rank": zod.number(),
+  "userId": zod.string(),
+  "displayName": zod.string(),
+  "totalXp": zod.number(),
+  "lessonsCompleted": zod.number(),
+  "isCurrentUser": zod.boolean()
+})),
+  "currentUserEntry": zod.union([zod.object({
+  "rank": zod.number(),
+  "userId": zod.string(),
+  "displayName": zod.string(),
+  "totalXp": zod.number(),
+  "lessonsCompleted": zod.number(),
+  "isCurrentUser": zod.boolean()
+}),zod.null()])
+})
+
+
+/**
  * @summary Submit quiz answers and get score
  */
 export const SubmitQuizBody = zod.object({

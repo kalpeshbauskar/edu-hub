@@ -16,6 +16,7 @@ import CourseDetailPage from "@/pages/course-detail";
 import LessonPage from "@/pages/lesson";
 import CodePage from "@/pages/code";
 import ChatPage from "@/pages/chat";
+import LeaderboardPage from "@/pages/leaderboard";
 import NotFound from "@/pages/not-found";
 
 const clerkPubKey = publishableKeyFromHost(
@@ -178,6 +179,7 @@ function ClerkProviderWithRoutes() {
               <Route path="/lessons/:id"><ProtectedRoute component={LessonPage} /></Route>
               <Route path="/code"><ProtectedRoute component={CodePage} /></Route>
               <Route path="/chat"><ProtectedRoute component={ChatPage} /></Route>
+              <Route path="/leaderboard"><ProtectedRoute component={LeaderboardPage} /></Route>
               
               <Route component={NotFound} />
             </Switch>
