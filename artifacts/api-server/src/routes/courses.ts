@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
 import { coursesTable, lessonsTable, quizQuestionsTable, userProgressTable } from "@workspace/db";
-import { eq, sql } from "drizzle-orm";
+import { eq, sql, type SQL } from "drizzle-orm";
 import { getAuth } from "@clerk/express";
 import { CreateCourseBody } from "@workspace/api-zod";
 
@@ -9,7 +9,7 @@ const router = Router();
 
 router.get("/", async (req, res) => {
   const { category, difficulty } = req.query as Record<string, string | undefined>;
-  const conditions = [];
+  const conditions: SQL<unknown>[] = [];
   if (category) conditions.push(eq(coursesTable.category, category));
   if (difficulty) conditions.push(eq(coursesTable.difficulty, difficulty));
 

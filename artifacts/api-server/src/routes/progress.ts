@@ -148,7 +148,7 @@ router.get("/leaderboard", requireAuth, async (req: any, res) => {
   });
 
   const currentUserRanked = ranked.find((e) => e.userId === currentUserId);
-  let currentUserEntry = null;
+  let currentUserEntry: typeof topEntries[number] | null = null;
   if (currentUserRanked && !topEntries.some((e) => e.isCurrentUser)) {
     currentUserEntry = {
       rank: currentUserRanked.rank,
