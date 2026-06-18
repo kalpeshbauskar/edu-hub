@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useParams } from "wouter";
 import { ChevronLeft, CheckCircle, XCircle, Trophy, ChevronRight, Loader2 } from "lucide-react";
-import { useGetLesson, useUpsertProgress, useSubmitQuiz, getGetLeaderboardQueryKey, getGetMyProgressQueryKey } from "@workspace/api-client-react";
+import { useGetLesson, useUpsertProgress, useSubmitQuiz, getGetLeaderboardQueryKey, getGetMyProgressQueryKey, type QuizResult } from "@workspace/api-client-react";
 import { useUser } from "@clerk/react";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -14,7 +14,7 @@ export default function LessonPage() {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [submitted, setSubmitted] = useState(false);
-  const [result, setResult] = useState<{ score: number; results: Array<{ questionId: number; correct: boolean }> } | null>(null);
+  const [result, setResult] = useState<QuizResult | null>(null);
   const [quizStarted, setQuizStarted] = useState(false);
 
   const queryClient = useQueryClient();
@@ -57,13 +57,12 @@ export default function LessonPage() {
     } catch {
       // fallback: calculate locally
       let correct = 0;
-      const localResults = questions.map((q: any, i: number) => {
-        const isCorrect = answers[i] === q.correctOption;
-        if (isCorrect) correct++;
-        return { questionId: q.id, correct: isCorrect };
+      const correctAnswers: number[] = [];
+      questions.forEach((q: any, i: number) => {
+        if (answers[i] === q.correctOption) { correct++; correctAnswers.push(q.id); }
       });
       const score = total > 0 ? (correct / total) * 100 : 0;
-      setResult({ score, results: localResults });
+      setResult({ score, total, passed: score >= 60, xpEarned: Math.round(score), correctAnswers });
       setSubmitted(true);
     }
   };
@@ -144,7 +143,7 @@ export default function LessonPage() {
               </div>
               <p className="text-3xl font-extrabold mb-1">{Math.round(result.score)}%</p>
               <p className="text-muted-foreground mb-2">
-                {result.results.filter((r) => r.correct).length} of {total} correct
+                {result.correctAnswers.length} of {total} correct
               </p>
               {result.score >= 60 ? (
                 <p className="text-green-600 font-semibold mb-6">🎉 Great job! Lesson completed and XP earned.</p>

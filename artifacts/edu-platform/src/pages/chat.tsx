@@ -16,7 +16,7 @@ export default function ChatPage() {
 
   const { data: conversations, refetch: refetchConvos } = useListChatConversations();
   const { data: activeConv, refetch: refetchConv } = useGetChatConversation(activeConvId ?? 0, {
-    query: { enabled: !!activeConvId },
+    query: { enabled: !!activeConvId } as any,
   });
   const createConv = useCreateChatConversation();
   const deleteConv = useDeleteChatConversation();
